@@ -87,6 +87,34 @@ class BmiAppTests(unittest.TestCase):
             with self.subTest(bmi=bmi):
                 self.assertEqual(bmi_guidance(bmi)["label"], category)
 
+    def test_obese_bmi_numbers_are_red_on_all_surfaces(self):
+        for weight, displayed, obese in [
+            ("24", "24.0", False),
+            ("26.9", "26.9", False),
+            ("27", "27.0", True),
+            ("30", "30.0", True),
+            ("26.96", "27.0", True),
+        ]:
+            with self.subTest(weight=weight):
+                response = self.calculate(height="100", weight=weight, name=weight)
+                page = response.get_data(as_text=True)
+                suffix = " bmi-obese" if obese else ""
+                self.assertIn(f'class="result-number{suffix}">{displayed}</span>', page)
+                self.assertIn(f'class="chart-value{suffix}"', page)
+                cell_class = ' class="bmi-obese"' if obese else ""
+                self.assertIn(f"<td{cell_class}>{displayed}</td>", page)
+                if not obese:
+                    self.assertNotIn("bmi-obese", page)
+
+    def test_history_retains_each_records_color(self):
+        self.calculate(height="100", weight="27", name="顏色測試")
+        response = self.calculate(height="100", weight="26.9", name="顏色測試")
+        page = response.get_data(as_text=True)
+        self.assertIn('class="result-number">26.9</span>', page)
+        self.assertEqual(page.count('class="chart-value bmi-obese"'), 1)
+        self.assertIn('<td class="bmi-obese">27.0</td>', page)
+        self.assertIn("<td>26.9</td>", page)
+
     def test_invalid_fields_do_not_produce_result(self):
         for height, weight in [("", "65"), ("0", "65"), ("abc", "65"), ("170", "-2"), ("inf", "65"), ("170", "nan"), ("1e-300", "65"), ("1e308", "65"), ("1", "1e308")]:
             with self.subTest(height=height, weight=weight):

@@ -71,7 +71,7 @@
               <section class="result-panel {{ result.tone }}" aria-labelledby="result-title" aria-live="polite">
                 <span class="panel-kicker">YOUR RESULT / 計算結果</span>
                 <div class="result-main">
-                  <span class="result-number">{{ result.bmi }}</span>
+                  <span class="result-number{% if result.label == '肥胖' %} bmi-obese{% endif %}">{{ result.bmi }}</span>
                   <span class="result-unit">BMI</span>
                 </div>
                 <div class="result-divider"></div>
@@ -130,7 +130,7 @@
                   <circle class="chart-point" cx="{{ point.x }}" cy="{{ point.y }}" r="5">
                     <title>第 {{ loop.index }} 筆：{{ point.date }} {{ point.time }}，BMI {{ point.display_bmi }}，{{ point.category }}</title>
                   </circle>
-                  <text class="chart-value" x="{{ point.x }}" y="{{ point.y - 12 }}" text-anchor="middle">{{ point.display_bmi }}</text>
+                  <text class="chart-value{% if point.category == '肥胖' %} bmi-obese{% endif %}" x="{{ point.x }}" y="{{ point.y - 12 }}" text-anchor="middle">{{ point.display_bmi }}</text>
                   <text class="chart-label" x="{{ point.x }}" y="280" text-anchor="middle">{{ point.date }}</text>
                   <text class="chart-label" x="{{ point.x }}" y="298" text-anchor="middle">{{ point.time }}</text>
                 {% endfor %}
@@ -145,7 +145,7 @@
                   <thead><tr><th scope="col">時間</th><th scope="col">身高（cm）</th><th scope="col">體重（kg）</th><th scope="col">BMI</th><th scope="col">體位</th></tr></thead>
                   <tbody>
                     {% for point in chart.points %}
-                      <tr><td>{{ point.date }} {{ point.time }}</td><td>{{ point.height_cm }}</td><td>{{ point.weight_kg }}</td><td>{{ point.display_bmi }}</td><td>{{ point.category }}</td></tr>
+                      <tr><td>{{ point.date }} {{ point.time }}</td><td>{{ point.height_cm }}</td><td>{{ point.weight_kg }}</td><td{% if point.category == '肥胖' %} class="bmi-obese"{% endif %}>{{ point.display_bmi }}</td><td>{{ point.category }}</td></tr>
                     {% endfor %}
                   </tbody>
                 </table>

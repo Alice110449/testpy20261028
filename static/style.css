@@ -96,6 +96,7 @@ button span { font-size: 20px; font-weight: 400; }
 .chart-point { fill: #285a43; stroke: #fff; stroke-width: 2; }
 .chart-label { fill: #607267; font-size: 11px; }
 .chart-value { fill: #24352f; font-size: 12px; font-weight: 700; }
+.bmi-obese { color: #b42318; fill: #b42318; }
 .history-details { margin-top: 20px; font-size: 13px; }
 .history-details summary { cursor: pointer; color: #285a43; }
 .history-details table { width: 100%; margin-top: 16px; border-collapse: collapse; white-space: nowrap; text-align: left; }
