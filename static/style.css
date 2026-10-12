@@ -102,6 +102,13 @@ button span { font-size: 20px; font-weight: 400; }
 .history-details table { width: 100%; margin-top: 16px; border-collapse: collapse; white-space: nowrap; text-align: left; }
 .history-details caption { padding: 12px 0; text-align: left; }
 .history-details th, .history-details td { padding: 12px; border-bottom: 1px solid #e1e5dc; }
+.users-page { padding-top: 40px; }
+.users-page h1 { font-size: clamp(30px, 4vw, 44px); }
+.users-link { display: inline-block; margin-top: 16px; color: #285a43; font-size: 14px; text-underline-offset: 3px; }
+.users-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 12px; padding: 0; list-style: none; }
+.users-list a { display: block; padding: 16px; border: 1px solid #e1e5dc; border-radius: 9px; background: #edf4ec; color: #285a43; overflow-wrap: anywhere; text-underline-offset: 3px; }
+.users-list a:hover { background: #d7e7d2; }
+.users-list a:focus-visible, .users-link:focus-visible { outline: 3px solid #94b589; outline-offset: 3px; }
 .about h2 { margin: 17px 0 16px; font-size: 28px; letter-spacing: -.04em; }
 .about p { max-width: 430px; margin: 0; color: #708078; font-size: 14px; line-height: 2; }
 .about strong { color: #3d664d; font-weight: 600; }
