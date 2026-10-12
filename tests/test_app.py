@@ -36,6 +36,88 @@ class BmiAppTests(unittest.TestCase):
         self.assertIn('id="name"', page)
         self.assertNotIn('class="bmi-chart"', page)
         self.assertEqual(list(Path(self.directory.name).iterdir()), [])
+        self.assertIn('href="/users"', page)
+
+    def test_users_page_with_no_records(self):
+        for directory in (
+            self.directory.name, str(Path(self.directory.name) / "not-created"),
+        ):
+            with self.subTest(directory=directory):
+                app.config["DATA_DIR"] = directory
+                response = self.client.get("/users")
+                self.assertEqual(response.status_code, 200)
+                page = response.get_data(as_text=True)
+                self.assertIn("目前尚無用戶紀錄", page)
+                self.assertNotIn('class="users-list"', page)
+                self.assertIn("所有訪客都能查看", page)
+        self.assertEqual(list(Path(self.directory.name).iterdir()), [])
+
+    def test_users_list_is_unique_sorted_and_links_to_latest_history(self):
+        older = save_record("Alice", 100, 20, 20)
+        other = save_record("Bob", 100, 30, 30)
+        latest = save_record("Alice", 100, 24, 24)
+        for record, timestamp in (
+            (older, "2026-10-12T11:00:01+00:00"),
+            (other, "2026-10-12T12:00:00+00:00"),
+            (latest, "2026-10-12T20:00:02+08:00"),
+        ):
+            record["recorded_at"] = timestamp
+            path = Path(self.directory.name) / f'{record["id"]}.json'
+            path.write_text(json.dumps(record), encoding="utf-8")
+        response = self.client.get("/users")
+        self.assertEqual(response.status_code, 200)
+        page = response.get_data(as_text=True)
+        self.assertEqual(page.count(">Alice</a>"), 1)
+        self.assertEqual(page.count(">Bob</a>"), 1)
+        self.assertLess(page.index(">Alice</a>"), page.index(">Bob</a>"))
+        link = f'/?record={latest["id"]}#history-title'
+        self.assertIn(f'href="{link}"', page)
+        history_page = self.client.get(link).get_data(as_text=True)
+        self.assertIn("Alice 的 BMI 趨勢", history_page)
+        self.assertIn('class="result-number">24.0</span>', history_page)
+        self.assertIn('class="history-details" open', history_page)
+        self.assertIn("<td>2026/10/12 19:00:01</td>", history_page)
+        self.assertIn("<td>2026/10/12 20:00:02</td>", history_page)
+        self.assertIn("<td>20.0</td>", history_page)
+        self.assertIn("<td>24.0</td>", history_page)
+        self.assertLess(history_page.index("<td>20.0</td>"), history_page.index("<td>24.0</td>"))
+        self.assertNotIn("Bob", history_page)
+        self.assertNotIn("<td>30.0</td>", history_page)
+        self.assertEqual(len(list(Path(self.directory.name).glob("*.json"))), 3)
+
+    def test_users_list_escapes_names_and_ignores_temporary_files(self):
+        name = '../<script>alert("x")</script>'
+        record = save_record(name, 100, 20, 20)
+        (Path(self.directory.name) / "incomplete.tmp").write_text("{broken", encoding="utf-8")
+        response = self.client.get("/users")
+        self.assertEqual(response.status_code, 200)
+        page = response.get_data(as_text=True)
+        self.assertNotIn("<script>", page)
+        self.assertIn("&lt;script&gt;", page)
+        self.assertIn(name, unescape(page))
+        self.assertIn(f'href="/?record={record["id"]}#history-title"', page)
+        self.assertEqual(len(list(Path(self.directory.name).iterdir())), 2)
+
+    def test_users_list_reports_corrupt_records_without_partial_results(self):
+        save_record("Alice", 100, 20, 20)
+        path = Path(self.directory.name) / f"{uuid4()}.json"
+        path.write_text("{broken", encoding="utf-8")
+        with self.assertLogs(app.logger, level="ERROR"):
+            response = self.client.get("/users")
+        self.assertEqual(response.status_code, 503)
+        page = response.get_data(as_text=True)
+        self.assertIn("無法讀取用戶名單", page)
+        self.assertNotIn('class="users-list"', page)
+        self.assertNotIn("目前尚無用戶紀錄", page)
+        self.assertEqual(path.read_text(encoding="utf-8"), "{broken")
+
+    def test_users_list_reports_storage_permission_errors(self):
+        with patch("app.Path.iterdir", side_effect=PermissionError("test")), self.assertLogs(
+            app.logger, level="ERROR",
+        ):
+            response = self.client.get("/users")
+        self.assertEqual(response.status_code, 503)
+        self.assertIn("無法讀取用戶名單", response.get_data(as_text=True))
 
     def test_calculation_and_advice(self):
         response = self.calculate()

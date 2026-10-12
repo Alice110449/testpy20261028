@@ -111,7 +111,7 @@ def read_record(path):
     return record
 
 
-def load_history(name):
+def load_records():
     directory = Path(app.config["DATA_DIR"])
     try:
         paths = list(directory.iterdir())
@@ -119,9 +119,32 @@ def load_history(name):
         return []
     records = [read_record(path) for path in paths if path.suffix == ".json"]
     return sorted(
-        (record for record in records if record["name"] == name),
+        records,
         key=lambda record: (datetime.fromisoformat(record["recorded_at"]), record["id"]),
     )
+
+
+def load_history(name):
+    return [record for record in load_records() if record["name"] == name]
+
+
+@app.get("/users")
+def users():
+    latest_records = {}
+    storage_error = None
+    status = 200
+    try:
+        for record in load_records():
+            latest_records[record["name"]] = record
+    except (OSError, ValueError) as error:
+        app.logger.error("Unable to load BMI users: %s", error)
+        storage_error = "無法讀取用戶名單，請聯絡管理員檢查 data 資料夾的權限與 JSON 格式。"
+        status = 503
+    return render_template(
+        "users.html",
+        users=[latest_records[name] for name in sorted(latest_records)],
+        storage_error=storage_error,
+    ), status
 
 
 def save_record(name, height, weight, bmi):

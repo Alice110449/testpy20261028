@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="查看已儲存 BMI 紀錄的用戶名單，點選姓名瀏覽歷次 BMI 與計算時間。">
+    <title>所有用戶 · 好好生活</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <div class="page">
+      <header class="site-header">
+        <a class="brand" href="{{ url_for('index') }}" aria-label="好好生活，回到首頁">
+          <span class="brand-mark" aria-hidden="true">✳</span>
+          好好生活 <span class="brand-en">WELL LIVING</span>
+        </a>
+        <span class="header-note">把健康，從了解自己開始。</span>
+      </header>
+      <main class="users-page">
+        <section class="history-panel" aria-labelledby="users-title">
+          <span class="section-number">BMI USERS</span>
+          <h1 id="users-title">所有用戶</h1>
+          <p>點選姓名，查看該用戶的歷次 BMI 數值、計算時間（UTC+8）與折線圖。同一姓名／暱稱的紀錄會合併。</p>
+          <p><strong>隱私提醒：目前沒有登入或身分驗證，所有訪客都能查看這份名單與紀錄；請勿使用敏感個資。</strong></p>
+          {% if storage_error %}
+            <p class="storage-error" role="alert">{{ storage_error }}</p>
+          {% elif users %}
+            <ul class="users-list">
+              {% for user in users %}
+                <li><a href="{{ url_for('index', record=user.id, _anchor='history-title') }}">{{ user.name }}</a></li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p role="status">目前尚無用戶紀錄，請先計算並儲存 BMI。</p>
+          {% endif %}
+          <a class="users-link" href="{{ url_for('index') }}">回到 BMI 計算器</a>
+        </section>
+      </main>
+      <footer>© 好好生活 <span>TAKE CARE, EVERY DAY.</span></footer>
+    </div>
+  </body>
+</html>

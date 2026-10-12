@@ -38,7 +38,7 @@
                   <div class="field name-field">
                     <label for="name">姓名 <span>NAME</span></label>
                     <input id="name" name="name" type="text" autocomplete="name" maxlength="80" placeholder="輸入姓名或固定暱稱" value="{{ name_input }}" required aria-describedby="name-help{% if errors.name %} name-error{% endif %}" {% if errors.name %}aria-invalid="true"{% endif %}>
-                    <p class="field-help" id="name-help">同一姓名／暱稱的紀錄會合併。此功能沒有登入驗證，知道姓名的人也可查詢；請勿輸入敏感個資。</p>
+                    <p class="field-help" id="name-help">同一姓名／暱稱的紀錄會合併。此功能沒有登入驗證，所有訪客可透過用戶名單查看姓名與歷史紀錄；請勿輸入敏感個資。</p>
                     {% if errors.name %}<p class="field-error" id="name-error">{{ errors.name }}</p>{% endif %}
                   </div>
                   <div class="field">
@@ -63,6 +63,7 @@
               </form>
               {% if storage_error %}<p class="storage-error" role="alert">{{ storage_error }}</p>{% endif %}
               {% if history_notice %}<p class="field-help" role="status">{{ history_notice }}</p>{% endif %}
+              <a class="users-link" href="{{ url_for('users') }}">查看所有用戶的 BMI 紀錄</a>
             </div>
           </div>
 
@@ -137,7 +138,7 @@
                 <text class="chart-label" x="{{ chart.width / 2 }}" y="323" text-anchor="middle">計算時間（依紀錄順序）</text>
               </svg>
             </div>
-            <details class="history-details">
+            <details class="history-details" open>
               <summary>查看每筆計算數據</summary>
               <div class="table-scroll">
                 <table>
