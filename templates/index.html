@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="輸入身高與體重，計算 BMI 並查看成人健康體位建議。">
+    <meta name="description" content="輸入姓名、身高與體重，儲存 BMI 紀錄、查看歷史折線圖及成人健康體位建議。">
     <title>BMI 計算器 · 好好生活</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   </head>
@@ -22,7 +22,7 @@
           <div class="hero-copy">
             <span class="eyebrow"><span class="eyebrow-dot"></span> YOUR HEALTH, YOUR PACE</span>
             <h1 id="page-title">了解自己的<br><em>健康情形。</em></h1>
-            <p class="intro">輸入身高與體重，快速算出 BMI，找到適合自己的健康生活方向。</p>
+            <p class="intro">輸入姓名、身高與體重，計算 BMI 並儲存紀錄，用折線圖了解自己的健康變化。</p>
 
             <div class="calculator">
               <div class="card-heading">
@@ -35,6 +35,12 @@
 
               <form method="post" action="{{ url_for('index') }}" novalidate>
                 <div class="form-fields">
+                  <div class="field name-field">
+                    <label for="name">姓名 <span>NAME</span></label>
+                    <input id="name" name="name" type="text" autocomplete="name" maxlength="80" placeholder="輸入姓名或固定暱稱" value="{{ name_input }}" required aria-describedby="name-help{% if errors.name %} name-error{% endif %}" {% if errors.name %}aria-invalid="true"{% endif %}>
+                    <p class="field-help" id="name-help">同一姓名／暱稱的紀錄會合併。此功能沒有登入驗證，知道姓名的人也可查詢；請勿輸入敏感個資。</p>
+                    {% if errors.name %}<p class="field-error" id="name-error">{{ errors.name }}</p>{% endif %}
+                  </div>
                   <div class="field">
                     <label for="height">身高 <span>HEIGHT</span></label>
                     <div class="input-wrap">
@@ -52,8 +58,11 @@
                     {% if errors.weight %}<p class="field-error" id="weight-error">{{ errors.weight }}</p>{% endif %}
                   </div>
                 </div>
-                <button type="submit">計算 BMI <span aria-hidden="true">↗</span></button>
+                <button type="submit" name="action" value="calculate">計算並儲存 BMI <span aria-hidden="true">↗</span></button>
+                <button class="history-button" type="submit" name="action" value="history" formnovalidate>只查詢此姓名的歷史紀錄 <span aria-hidden="true">↗</span></button>
               </form>
+              {% if storage_error %}<p class="storage-error" role="alert">{{ storage_error }}</p>{% endif %}
+              {% if history_notice %}<p class="field-help" role="status">{{ history_notice }}</p>{% endif %}
             </div>
           </div>
 
@@ -69,6 +78,21 @@
                 <span class="result-label">你的體位屬於 <strong>{{ result.label }}</strong></span>
                 <h2 id="result-title">給你的健康建議</h2>
                 <p>{{ result.advice }}</p>
+                <ul class="health-tips">
+                  {% for tip in result.tips %}
+                    <li><strong>{{ tip.title }}</strong><span>{{ tip.text }}</span></li>
+                  {% endfor %}
+                  <li><strong>日常活動</strong><span>一般成人可逐步朝每週至少 150 分鐘中等強度活動（例如快走）努力，搭配肌力活動並減少久坐。依體能循序增加；若有慢性病或身體不適，請先與醫療專業人員討論。</span></li>
+                </ul>
+                <p class="advice-note">以上為依公開衛教資料整理的一般建議，非個人化診斷或治療處方。BMI 分類供 18 歲（含）以上成人參考，不適用於孕婦。</p>
+                <div class="advice-sources">
+                  <h3>參考資料</h3>
+                  <ul>
+                    {% for source in health_sources %}
+                      <li><a href="{{ source.url }}" target="_blank" rel="noopener noreferrer">{{ source.title }}</a></li>
+                    {% endfor %}
+                  </ul>
+                </div>
                 <span class="result-decoration" aria-hidden="true">✳</span>
               </section>
             {% else %}
@@ -82,9 +106,57 @@
           </div>
         </section>
 
+        {% if chart %}
+          <section class="history-panel" aria-labelledby="history-title">
+            <span class="section-number">02 / BMI HISTORY</span>
+            <h2 id="history-title">{{ name_input }} 的 BMI 趨勢</h2>
+            <p id="chart-description">已儲存 {{ chart.points|length }} 筆紀錄。橫軸依計算時間順序排列，縱軸為 BMI；淡綠區為成人健康體位範圍（18.5 至未滿 24）。時間為 UTC+8。</p>
+            {% if chart.points|length == 1 %}<p class="field-help">目前只有一筆紀錄；下次使用相同姓名計算，即可看到連線趨勢。</p>{% endif %}
+            <div class="chart-scroll" tabindex="0" role="region" aria-label="可橫向捲動的 BMI 折線圖">
+              <svg class="bmi-chart" viewBox="0 0 {{ chart.width }} 330" style="min-width: {{ chart.width }}px" role="img" aria-labelledby="chart-title chart-description">
+                <title id="chart-title">{{ name_input }} 的歷次 BMI 折線圖</title>
+                <rect class="healthy-band" x="{{ chart.left }}" y="{{ chart.healthy_top }}" width="{{ chart.right - chart.left }}" height="{{ chart.healthy_height }}"></rect>
+                {% for tick in chart.ticks %}
+                  <line class="chart-grid" x1="{{ chart.left }}" y1="{{ tick.y }}" x2="{{ chart.right }}" y2="{{ tick.y }}"></line>
+                  <text class="chart-label" x="{{ chart.left - 10 }}" y="{{ tick.y + 4 }}" text-anchor="end">{{ tick.label }}</text>
+                {% endfor %}
+                {% for threshold in chart.thresholds %}
+                  <line class="chart-threshold" x1="{{ chart.left }}" y1="{{ threshold.y }}" x2="{{ chart.right }}" y2="{{ threshold.y }}"></line>
+                  <text class="chart-label" x="{{ chart.right + 22 }}" y="{{ threshold.y + 4 }}">{{ threshold.label }}</text>
+                {% endfor %}
+                <text class="chart-label" x="15" y="15">BMI</text>
+                <polyline class="chart-line" points="{{ chart.line }}"></polyline>
+                {% for point in chart.points %}
+                  <circle class="chart-point" cx="{{ point.x }}" cy="{{ point.y }}" r="5">
+                    <title>第 {{ loop.index }} 筆：{{ point.date }} {{ point.time }}，BMI {{ point.display_bmi }}，{{ point.category }}</title>
+                  </circle>
+                  <text class="chart-value" x="{{ point.x }}" y="{{ point.y - 12 }}" text-anchor="middle">{{ point.display_bmi }}</text>
+                  <text class="chart-label" x="{{ point.x }}" y="280" text-anchor="middle">{{ point.date }}</text>
+                  <text class="chart-label" x="{{ point.x }}" y="298" text-anchor="middle">{{ point.time }}</text>
+                {% endfor %}
+                <text class="chart-label" x="{{ chart.width / 2 }}" y="323" text-anchor="middle">計算時間（依紀錄順序）</text>
+              </svg>
+            </div>
+            <details class="history-details">
+              <summary>查看每筆計算數據</summary>
+              <div class="table-scroll">
+                <table>
+                  <caption>{{ name_input }} 的 BMI 計算紀錄（UTC+8）</caption>
+                  <thead><tr><th scope="col">時間</th><th scope="col">身高（cm）</th><th scope="col">體重（kg）</th><th scope="col">BMI</th><th scope="col">體位</th></tr></thead>
+                  <tbody>
+                    {% for point in chart.points %}
+                      <tr><td>{{ point.date }} {{ point.time }}</td><td>{{ point.height_cm }}</td><td>{{ point.weight_kg }}</td><td>{{ point.display_bmi }}</td><td>{{ point.category }}</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          </section>
+        {% endif %}
+
         <section class="information" aria-labelledby="about-title">
           <div class="about">
-            <span class="section-number">02 / GOOD TO KNOW</span>
+            <span class="section-number">03 / GOOD TO KNOW</span>
             <h2 id="about-title">BMI 是什麼？</h2>
             <p>BMI（身體質量指數）是以體重與身高估算體位的簡易指標。計算方式為 <strong>體重（公斤）÷ 身高（公尺）的平方</strong>。</p>
           </div>

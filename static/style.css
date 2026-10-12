@@ -28,6 +28,12 @@ h1 em { color: #5a8765; font-style: normal; }
 .card-heading h2 { margin: 7px 0 0; font-size: 21px; letter-spacing: -.04em; }
 .card-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: #edf4ec; color: #386d4e; font-size: 20px; }
 .form-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.name-field { grid-column: 1 / -1; }
+.name-field input { padding-right: 16px; }
+.field-help { margin: 8px 0 0; color: #607267; font-size: 12px; line-height: 1.8; }
+.storage-error { margin: 16px 0 0; color: #a64e39; font-size: 14px; line-height: 1.8; }
+.history-button { margin-top: 12px; background: #edf4ec; color: #285a43; font-size: 13px; }
+.history-button:hover { background: #d7e7d2; }
 .field label { display: flex; align-items: baseline; gap: 7px; margin-bottom: 10px; font-size: 13px; font-weight: 700; }
 .field label span { color: #a6b4a9; font-size: 10px; font-weight: 600; letter-spacing: .08em; }
 .input-wrap { position: relative; }
@@ -65,8 +71,36 @@ button span { font-size: 20px; font-weight: 400; }
 .result-label strong { margin-left: 5px; color: #234f37; font-size: 18px; }
 .result-panel h2 { position: relative; z-index: 1; margin: 31px 0 10px; font-size: 17px; }
 .result-panel p { position: relative; z-index: 1; max-width: 340px; margin: 0; color: #4f6657; font-size: 14px; line-height: 1.9; }
+.health-tips { position: relative; z-index: 1; margin: 20px 0; padding: 0; list-style: none; color: #4f6657; font-size: 14px; line-height: 1.9; }
+.health-tips li + li { margin-top: 14px; }
+.health-tips strong, .health-tips span { display: block; }
+.health-tips strong { color: #24352f; }
+.result-panel .advice-note { font-size: 12px; }
+.advice-sources { position: relative; z-index: 1; margin-top: 20px; padding-top: 16px; border-top: 1px solid #b6cfb5; }
+.advice-sources h3 { margin: 0 0 8px; font-size: 13px; }
+.advice-sources ul { margin: 0; padding-left: 20px; font-size: 12px; line-height: 1.9; }
+.advice-sources a { color: #285a43; text-underline-offset: 3px; overflow-wrap: anywhere; }
+.advice-sources a:focus-visible { outline: 3px solid #94b589; outline-offset: 3px; }
 .result-decoration { position: absolute; right: -30px; bottom: -87px; color: #d0e3ca; font-size: 260px; line-height: 1; }
 .information { display: grid; grid-template-columns: 1fr 1fr; gap: 10%; padding: 40px 0 45px; border-top: 1px solid #e1e5dc; }
+.history-panel { margin-bottom: 40px; padding: 30px; border: 1px solid #e1e5dc; border-radius: 17px; background: #fff; }
+.history-panel h2 { margin: 12px 0; overflow-wrap: anywhere; font-size: 24px; }
+.history-panel > p { color: #607267; font-size: 13px; line-height: 1.9; }
+.chart-scroll, .table-scroll { max-width: 100%; overflow-x: auto; }
+.chart-scroll:focus-visible, .history-details summary:focus-visible { outline: 3px solid #94b589; outline-offset: 3px; }
+.bmi-chart { display: block; width: 100%; margin-top: 20px; }
+.healthy-band { fill: #e6f1e4; }
+.chart-grid { stroke: #e1e5dc; stroke-width: 1; }
+.chart-threshold { stroke: #89a78b; stroke-width: 1; stroke-dasharray: 4 4; }
+.chart-line { fill: none; stroke: #285a43; stroke-width: 3; stroke-linejoin: round; }
+.chart-point { fill: #285a43; stroke: #fff; stroke-width: 2; }
+.chart-label { fill: #607267; font-size: 11px; }
+.chart-value { fill: #24352f; font-size: 12px; font-weight: 700; }
+.history-details { margin-top: 20px; font-size: 13px; }
+.history-details summary { cursor: pointer; color: #285a43; }
+.history-details table { width: 100%; margin-top: 16px; border-collapse: collapse; white-space: nowrap; text-align: left; }
+.history-details caption { padding: 12px 0; text-align: left; }
+.history-details th, .history-details td { padding: 12px; border-bottom: 1px solid #e1e5dc; }
 .about h2 { margin: 17px 0 16px; font-size: 28px; letter-spacing: -.04em; }
 .about p { max-width: 430px; margin: 0; color: #708078; font-size: 14px; line-height: 2; }
 .about strong { color: #3d664d; font-weight: 600; }
@@ -99,4 +133,5 @@ footer span { letter-spacing: .14em; }
   .form-fields { grid-template-columns: 1fr; gap: 17px; }
   .result-panel { padding: 32px 26px; }
   .ranges { padding: 22px 18px; }
+  .history-panel { padding: 22px 18px; }
 }
